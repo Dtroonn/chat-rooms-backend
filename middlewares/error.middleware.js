@@ -10,7 +10,7 @@ module.exports = function (err, req, res, next) {
         });
     }
 
-    return res.status(500).json({
+    res.status(500).json({
         message: `Непредвиденная ошибка(${err.message})`,
     });
 };

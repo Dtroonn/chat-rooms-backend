@@ -22,6 +22,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/api/auth', require('./routers/auth.router'));
+app.use('/api/users', require('./routers/users.router'));
 app.use(errorMiddleware);
 
 const PORT = process.env.PORT || 5000;
