@@ -1,19 +1,16 @@
-const { RoomSerivce, UserService } = require('../services');
+const { validationResult } = require("express-validator");
+const ApiError = require("../exeptions/apiError");
 
 class RoomController {
-    async create(req, res) {
+    async create(req, res, next) {
         try {
-            const { userName } = req.body;
-            const [Room, User] = await Promise.all([
-                RoomSerivce.create(),
-                UserService.create(userName),
-            ]);
-            await Room.addUser(User);
-            res.json({
-                _id: Room._id,
-                users: Room.users,
-                messages: [],
-                user: User,
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return next(ApiError.badRequest("Ошибка валидации", errors.array()));
+            }
+
+            res.status(200).json({
+                message: "hello from room controller",
             });
         } catch (e) {
             res.status(500).json({
