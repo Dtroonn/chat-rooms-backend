@@ -2,7 +2,6 @@ const { Schema, model } = require("mongoose");
 
 const roomSchema = new Schema(
     {
-        users: [{ type: Schema.Types.ObjectId, ref: "User" }],
         title: {
             type: String,
             required: true,
@@ -11,14 +10,15 @@ const roomSchema = new Schema(
             type: String,
             default: null,
         },
-        admins: [{ type: Schema.Types.ObjectId, ref: "User" }],
+        admins: [{ type: Schema.Types.ObjectId, ref: "User", required: true }],
         image: {
-            type: String,
+            type: Schema.Types.ObjectId,
+            ref: "File",
             default: null,
         },
         usersCount: {
             type: String,
-            required: true,
+            default: 1,
         },
     },
     {

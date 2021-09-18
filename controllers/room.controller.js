@@ -1,5 +1,6 @@
 const { validationResult } = require("express-validator");
 const ApiError = require("../exeptions/apiError");
+const { RoomSerivce } = require("../services");
 
 class RoomController {
     async create(req, res, next) {
@@ -9,13 +10,23 @@ class RoomController {
                 return next(ApiError.badRequest("Ошибка валидации", errors.array()));
             }
 
-            res.status(200).json({
-                message: "hello from room controller",
+            const room = await RoomSerivce.create(req.body, req.user, req.file);
+
+            res.status(201).json(room);
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async get(req, res, next) {
+        try {
+            const rooms = await RoomSerivce.get();
+
+            res.json({
+                items: rooms,
             });
         } catch (e) {
-            res.status(500).json({
-                message: e.message,
-            });
+            next(e);
         }
     }
 }
