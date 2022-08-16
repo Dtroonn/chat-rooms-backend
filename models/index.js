@@ -4,4 +4,5 @@ module.exports = {
     User: require("./user"),
     Token: require("./token"),
     File: require("./file"),
+    RoomAndUserModel: require('./roomAndUser'),
 };

@@ -1,4 +1,4 @@
-const { Schema, model } = require('mongoose');
+const { Schema, model } = require("mongoose");
 
 const userSchema = new Schema(
     {
@@ -18,15 +18,26 @@ const userSchema = new Schema(
             type: String,
             required: true,
         },
+
+        mailActivationToken: {
+            type: String,
+            reqiured: true,
+        },
+
+        isVerified: {
+            type: Boolean,
+            default: false,
+        },
     },
     { versionKey: false },
 );
 
-userSchema.set('toJSON', {
+userSchema.set("toJSON", {
     transform: function (doc, ret, opt) {
         delete ret.password;
+        delete ret.mailActivationToken;
         return ret;
     },
 });
 
-module.exports = model('User', userSchema);
+module.exports = model("User", userSchema);

@@ -1,7 +1,9 @@
-const { User } = require('../models');
-const bcrypt = require('bcrypt');
-const TokenService = require('./token.service');
-const ApiError = require('../exeptions/apiError');
+const { User } = require("../models");
+const bcrypt = require("bcrypt");
+const uuid = require("uuid");
+const TokenService = require("./token.service");
+const ApiError = require("../exeptions/apiError");
+const MailerService = require("./mailer.service");
 
 class UserService {
     async register(email, username, password) {
@@ -9,37 +11,37 @@ class UserService {
 
         if (candidate) {
             if (candidate.email === email) {
-                throw ApiError.badRequest('Аккаунт с такой почтой уже существует');
+                throw ApiError.badRequest("Аккаунт с такой почтой уже существует");
             }
 
             if (candidate.username === username) {
-                throw ApiError.badRequest('Такое имя пользователя занято');
+                throw ApiError.badRequest("Такое имя пользователя занято");
             }
         }
         const hashPassword = await bcrypt.hash(password, 7);
-        const user = await User.create({ email, username, password: hashPassword });
+        const mailActivationToken = uuid.v4();
 
-        const tokens = TokenService.generateTokens({ user });
+        await User.create({
+            email,
+            username,
+            password: hashPassword,
+            mailActivationToken,
+        });
 
-        await TokenService.saveToken(user._id, tokens.refreshToken);
-
-        return {
-            ...tokens,
-            user,
-        };
+        MailerService.verify(email, username, mailActivationToken);
     }
 
     async login(username, password) {
         const user = await User.findOne({ $or: [{ email: username }, { username }] });
 
         if (!user) {
-            throw ApiError.badRequest('Неверный логин или пароль');
+            throw ApiError.badRequest("Неверный логин или пароль");
         }
 
         const isPasswordsEqual = await bcrypt.compare(password, user.password);
 
         if (!isPasswordsEqual) {
-            throw ApiError.badRequest('Неверный логин или пароль');
+            throw ApiError.badRequest("Неверный логин или пароль");
         }
 
         const tokens = TokenService.generateTokens({ user });
@@ -79,6 +81,47 @@ class UserService {
         } finally {
             TokenService.remove(refreshToken);
         }
+    }
+
+    async verifyMail(token) {
+        const user = await User.findOne({ mailActivationToken: token });
+
+        if (!user) {
+            throw ApiError.badRequest("Пользователь с таким токеном подтверждения не найден");
+        }
+
+        user.mailActivationToken = null;
+        user.isVerified = true;
+        await user.save();
+
+        const tokens = TokenService.generateTokens({ user });
+
+        await TokenService.saveToken(user._id, tokens.refreshToken);
+
+        return {
+            ...tokens,
+            user,
+        };
+    }
+
+    async sendVerifyMail(username) {
+        const user = await User.findOne({ username });
+
+        if (!user) {
+            throw ApiError.notFound("Пользователь не найден");
+        }
+
+        if (user.isVerified) {
+            throw ApiError.badRequest("Почта уже подтверждена");
+        }
+
+        const mailActivationToken = uuid.v4();
+
+        user.mailActivationToken = mailActivationToken;
+
+        await user.save();
+
+        return MailerService.verify(user.email, user.username, mailActivationToken);
     }
 
     async getAll() {

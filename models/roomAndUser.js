@@ -1,23 +1,21 @@
 const { Schema, model } = require("mongoose");
 
-const messageSchema = new Schema(
+const roomAndUserSchema = new Schema(
     {
         user: {
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true,
         },
-        text: {
-            type: String,
-            required: true,
-        },
-        room: {
+        roomId: {
             type: Schema.Types.ObjectId,
-            red: "Room",
+            ref: "Room",
             required: true,
         },
     },
-    { versionKey: false },
+    {
+        versionKey: false,
+    },
 );
 
-module.exports = model("Message", messageSchema);
+module.exports = model("RoomAndUser", roomAndUserSchema);

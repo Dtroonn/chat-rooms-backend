@@ -12,7 +12,6 @@ exports.registerValidators = [
         .isLength({ min: 6 })
         .withMessage("Пароль должен содержать не менее 6 символов"),
     body("passwordConfirm").custom((value, { req }) => {
-        console.log(value);
         if (value !== req.body.password) {
             throw new Error("Пароли не совпадают");
         }
@@ -22,5 +21,10 @@ exports.registerValidators = [
 ];
 
 exports.loginValidators = [
-    body("email").isEmail().withMessage("Некорректная почта").normalizeEmail(),
+    body("username").trim().notEmpty().withMessage("Поле обязательно к заполнению"),
+    body("password").notEmpty().withMessage("Поле обязательно к заполнению"),
+];
+
+exports.sendVerifyMailValidators = [
+    body("username").trim().notEmpty().withMessage("Поле обязательно к заполнению"),
 ];

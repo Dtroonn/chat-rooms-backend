@@ -17,7 +17,7 @@ const roomSchema = new Schema(
             default: null,
         },
         usersCount: {
-            type: String,
+            type: Number,
             default: 1,
         },
     },
